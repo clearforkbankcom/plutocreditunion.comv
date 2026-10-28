@@ -1,0 +1,1713 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pluto Credit Union Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- iOS PWA / Home Screen Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Pluto CU">
+    
+    <style>
+        #netlify-badge { display: none !important; }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif; 
+            background-color: #ffffff; 
+            margin: 0; 
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+        .app-container { 
+            width: 100%; 
+            height: 100%; 
+            background: #ffffff; 
+            display: flex; 
+            flex-direction: column; 
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .screen { display: flex; flex-direction: column; height: 100%; overflow: hidden; box-sizing: border-box; }
+        .hidden { display: none !important; }
+
+        /* Login & Recovery Common Containers */
+        .auth-container { padding: 30px 20px; display: flex; flex-direction: column; justify-content: center; height: 100%; background: #ffffff; text-align: center; overflow-y: auto; max-width: 480px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+        .bank-logo { font-size: 26px; font-weight: 900; color: #556b2f; letter-spacing: -0.5px; margin-bottom: 5px; text-transform: uppercase; }
+        .auth-container p { color: #555; font-size: 13px; margin-bottom: 20px; line-height: 1.4; }
+        
+        .input-group { position: relative; width: 100%; margin-bottom: 12px; text-align: left; }
+        .input-label { font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 4px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+        .input-field { width: 100%; padding: 12px 45px 12px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; box-sizing: border-box; background: #f8fafc; text-align: left; letter-spacing: 0.5px; outline: none; }
+        .input-field:focus { border-color: #556b2f; background: #fff; }
+        .toggle-btn { position: absolute; right: 14px; top: 30px; background: none; border: none; cursor: pointer; color: #64748b; font-size: 12px; font-weight: 600; padding: 4px; }
+
+        .auth-btn { width: 100%; padding: 12px; background: #556b2f; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: background 0.2s; margin-top: 4px; }
+        .auth-btn:hover { background: #3a4a1f; }
+        
+        .link-btn { background: none; border: none; color: #556b2f; font-size: 12px; font-weight: 600; cursor: pointer; margin-top: 12px; text-decoration: underline; }
+
+        /* Loading Screen Styling */
+        .loading-container { padding: 30px 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; background: #ffffff; text-align: center; }
+        .spinner { width: 45px; height: 45px; border: 4px solid #f0f4ec; border-top: 4px solid #556b2f; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loading-text { font-size: 15px; font-weight: 600; color: #556b2f; margin-bottom: 4px; }
+        .loading-subtext { font-size: 12px; color: #64748b; }
+
+        /* Stationary Home Header */
+        .app-header { 
+            background: linear-gradient(135deg, #556b2f, #3a4a1f); 
+            padding: 12px 16px; 
+            color: white; 
+            text-align: center;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .header-top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; max-width: 800px; margin-left: auto; margin-right: auto; }
+        .header-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.8); cursor: pointer; background: #cbd5e1; }
+        .header-brand { font-size: 15px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; flex-grow: 1; text-align: center; }
+        .header-greeting { font-size: 12px; font-weight: 600; opacity: 0.95; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 4px; max-width: 800px; margin-left: auto; margin-right: auto; }
+        
+        .bell-icon { background: rgba(255,255,255,0.15); border: none; width: 32px; height: 32px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; position: relative; }
+        .bell-badge { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; background: #ef4444; border-radius: 50%; }
+
+        /* Quick Action Chips Row */
+        .quick-actions { display: flex; gap: 8px; padding: 10px 12px; background: #ffffff; overflow-x: auto; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; max-width: 800px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+        .quick-chip { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 20px; padding: 6px 12px; font-size: 11px; font-weight: 700; color: #556b2f; display: flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap; }
+        .quick-chip svg { width: 14px; height: 14px; fill: currentColor; }
+
+        /* Tab Content Body */
+        .app-body { 
+            padding: 12px 16px; 
+            flex: 1; 
+            overflow-y: auto; 
+            background-color: #f4f6f9; 
+            display: none; 
+            flex-direction: column;
+            box-sizing: border-box;
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .app-body.active { display: flex; opacity: 1; }
+        
+        .section-heading { font-size: 11px; font-weight: bold; color: #475569; margin: 4px 0 6px 2px; letter-spacing: 0.5px; text-transform: uppercase; }
+
+        .category-card { background: white; border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; box-shadow: 0px 2px 6px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; }
+        .category-header { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 800; color: #0f172a; margin-bottom: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px; }
+        
+        .account-sub-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f8fafc; cursor: pointer; }
+        .account-sub-item:last-child { border-bottom: none; }
+        .sub-acct-title { font-size: 12px; font-weight: 700; color: #334155; }
+        .sub-acct-sub { font-size: 10px; color: #64748b; }
+        .sub-acct-balance { font-size: 13px; font-weight: 800; color: #556b2f; text-align: right; }
+
+        /* Standing Card Shape & Flip Container */
+        .debit-card-wrapper { perspective: 1000px; width: 100%; max-width: 380px; height: 195px; margin: 0 auto 12px auto; cursor: pointer; }
+        .debit-card { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s; border-radius: 14px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+        .debit-card.flipped { transform: rotateY(180deg); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 14px; padding: 16px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; color: white; background: linear-gradient(135deg, #556b2f, #3a4a1f); }
+        .card-face.back { background: linear-gradient(135deg, #3a4a1f, #263113); transform: rotateY(180deg); padding: 16px 0; }
+        .card-chip { width: 36px; height: 26px; background: linear-gradient(135deg, #d1d5db, #9ca3af); border-radius: 4px; margin-bottom: 6px; }
+        .card-number { font-size: 16px; font-family: monospace; letter-spacing: 2px; margin-bottom: 6px; }
+        .card-info-row { display: flex; justify-content: space-between; font-size: 10px; text-transform: uppercase; }
+        .card-holder { font-size: 12px; font-weight: 700; letter-spacing: 1px; }
+        .magnetic-stripe { width: 100%; height: 35px; background: #000000; margin-bottom: 12px; }
+        .signature-strip { background: #e2e8f0; height: 30px; width: 85%; margin: 0 auto; display: flex; align-items: center; justify-content: flex-end; padding-right: 15px; color: #000; font-family: monospace; font-weight: bold; border-radius: 4px; }
+
+        /* FIXED POSITION MODALS WITH SEMI-TRANSPARENT BACKDROP */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 99999; box-sizing: border-box; padding: 16px; }
+        .success-box { background: white; width: 100%; max-width: 440px; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
+        .success-icon { width: 45px; height: 45px; background: #f0f4ec; color: #556b2f; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; margin: 0 auto 10px auto; }
+        .success-title { font-size: 16px; font-weight: bold; color: #0f172a; margin-bottom: 6px; }
+        
+        .receipt-card { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px; text-align: left; margin-bottom: 16px; max-height: 280px; overflow-y: auto; }
+        .receipt-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; }
+        .receipt-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .receipt-label { font-weight: 600; color: #475569; width: 38%; }
+        .receipt-value { font-weight: 700; color: #0f172a; width: 62%; text-align: right; word-break: break-word; }
+
+        /* Profile Card & Avatar */
+        .profile-header { background: #556b2f; color: white; padding: 20px 16px; text-align: center; }
+        .avatar-container { position: relative; width: 70px; height: 70px; margin: 0 auto 10px auto; }
+        .avatar-img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 3px solid white; background: #e2e8f0; }
+        .avatar-upload-label { position: absolute; bottom: 0; right: 0; background: #0f172a; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 11px; cursor: pointer; border: 2px solid white; }
+        .profile-name { font-size: 15px; font-weight: bold; margin-bottom: 2px; }
+        .profile-email-sub { font-size: 11px; opacity: 0.85; }
+        .profile-card { background: white; border-radius: 10px; padding: 14px; margin-bottom: 12px; box-shadow: 0px 2px 6px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; text-align: left; }
+
+        .doc-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
+        .doc-title { font-size: 12px; font-weight: 600; color: #334155; }
+        .doc-btn { background: #f1f5f9; border: none; padding: 5px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; color: #556b2f; cursor: pointer; }
+
+        /* Menu Section Accordions for More Tab */
+        .menu-section { background: white; border-radius: 10px; margin-bottom: 8px; border: 1px solid #e2e8f0; overflow: hidden; }
+        .menu-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; font-size: 12px; font-weight: 700; color: #0f172a; cursor: pointer; background: #fff; }
+        .menu-header:hover { background: #f8fafc; }
+        .menu-content { padding: 4px 14px 12px 14px; background: #f8fafc; border-top: 1px solid #f1f5f9; display: none; }
+        .menu-content.open { display: block; }
+        .menu-sub-item { padding: 8px 0; font-size: 11px; font-weight: 600; color: #475569; border-bottom: 1px solid #edf2f7; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .menu-sub-item:last-child { border-bottom: none; }
+        .menu-sub-item:hover { color: #556b2f; }
+
+        /* Lifted Bottom Navigation Bar */
+        .bottom-nav {
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 4px 18px 4px;
+            box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+            flex-shrink: 0;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #64748b;
+            flex: 1;
+            padding: 0;
+        }
+        .nav-item.active { color: #556b2f; }
+        .nav-icon { width: 20px; height: 20px; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; }
+        .nav-icon svg { width: 18px; height: 18px; fill: currentColor; }
+        .nav-label { font-size: 8px; font-weight: 700; letter-spacing: 0.2px; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- LOGIN SCREEN -->
+        <div id="login-screen" class="screen auth-container">
+            <div class="bank-logo">Pluto Credit Union</div>
+            <p>Secure Member Portal Access</p>
+            
+            <div class="input-group">
+                <label class="input-label">Email or Username</label>
+                <input type="text" id="username-input" class="input-field" placeholder="Email or Username" value="biancafrankfuurt092@gmail.com">
+                <button type="button" class="toggle-btn" onclick="toggleVisibility('username-input', this)">Show</button>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Password</label>
+                <input type="password" id="pass-input" class="input-field" placeholder="Password" value="Password11@">
+                <button type="button" class="toggle-btn" onclick="toggleVisibility('pass-input', this)">Show</button>
+            </div>
+
+            <button class="auth-btn" onclick="handleLogin()">Sign In</button>
+            <button class="auth-btn" style="background: #0f172a; margin-top: 6px;" onclick="handleBiometricLogin()">Sign in with Face ID / Touch ID</button>
+            <button type="button" class="link-btn" onclick="showForgotScreen()">Forgot Password?</button>
+            <p id="error-text" style="color: #dc2626; font-size: 12px; margin-top: 10px;"></p>
+        </div>
+
+        <!-- TIMEOUT / INACTIVITY LOCK SCREEN -->
+        <div id="timeout-screen" class="screen auth-container hidden" style="background: rgba(85,107,47,0.96); z-index: 999999; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;">
+            <div style="font-size: 40px; margin-bottom: 10px;">🔒</div>
+            <div class="bank-logo" style="color: white;">Session Locked</div>
+            <p style="color: rgba(255,255,255,0.8);">For your security, this session was locked due to inactivity. Enter PIN or scan biometrics to resume.</p>
+            
+            <div class="input-group" style="max-width: 280px; margin: 0 auto 12px auto;">
+                <input type="password" id="unlock-pin" class="input-field" maxlength="4" placeholder="Enter 4-Digit PIN" style="text-align: center; font-size: 18px; letter-spacing: 4px;">
+            </div>
+            <button class="auth-btn" style="max-width: 280px; margin: 0 auto; background: white; color: #556b2f;" onclick="unlockSession()">Unlock Session</button>
+        </div>
+
+        <!-- FORGOT PASSWORD SCREEN -->
+        <div id="forgot-screen" class="screen auth-container hidden">
+            <div class="bank-logo">Password Recovery</div>
+            <p>Enter your registered email to receive secure reset instructions.</p>
+            
+            <div class="input-group">
+                <label class="input-label">Email Address</label>
+                <input type="text" id="recovery-input" class="input-field" placeholder="Email Address" value="">
+            </div>
+
+            <button class="auth-btn" onclick="handleForgotSubmit()">Send Reset Code</button>
+            <button type="button" class="link-btn" onclick="showLoginScreen()">← Back to Sign In</button>
+            <p id="forgot-error-text" style="color: #dc2626; font-size: 12px; margin-top: 10px;"></p>
+        </div>
+
+        <!-- FORGOT PASSWORD VERIFY -->
+        <div id="forgot-verify-screen" class="screen auth-container hidden">
+            <div class="bank-logo">Security Verification</div>
+            <p>An encrypted 6-digit verification code has been sent to your mobile ending in ••••-190.</p>
+            
+            <div class="input-group">
+                <label class="input-label">Verification Code</label>
+                <input type="text" id="code-input" class="input-field" maxlength="6" placeholder="Enter 6-Digit Code" value="">
+            </div>
+
+            <button class="auth-btn" onclick="handleCodeVerify()">Verify & Reset Password</button>
+            <button type="button" class="link-btn" onclick="showForgotScreen()">Back</button>
+            <p id="verify-error-text" style="color: #dc2626; font-size: 12px; margin-top: 10px;"></p>
+        </div>
+
+        <!-- 2FA SELECTION & VERIFICATION SCREEN -->
+        <div id="otp-screen" class="screen auth-container hidden">
+            <div class="bank-logo">Two-Factor Authentication</div>
+            <p style="margin-bottom: 15px;">Select your preferred secure channel to receive your verification code:</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+                <div onclick="sendOtpCode('phone')" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; text-align: left;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 20px;">📱</span>
+                        <div>
+                            <div style="font-size: 12px; font-weight: bold; color: #0f172a;">Secure SMS Verification</div>
+                            <div style="font-size: 10px; color: #64748b;">Send code to mobile ending in ••••-190</div>
+                        </div>
+                    </div>
+                    <span style="font-size: 11px; font-weight: bold; color: #556b2f; background: #f0f4ec; padding: 5px 8px; border-radius: 6px;">Select →</span>
+                </div>
+
+                <div onclick="sendOtpCode('email')" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; text-align: left;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 20px;">✉️</span>
+                        <div>
+                            <div style="font-size: 12px; font-weight: bold; color: #0f172a;">Encrypted Email Verification</div>
+                            <div style="font-size: 10px; color: #64748b;">Send code to biancafrankfuurt092@gmail.com</div>
+                        </div>
+                    </div>
+                    <span style="font-size: 11px; font-weight: bold; color: #556b2f; background: #f0f4ec; padding: 5px 8px; border-radius: 6px;">Select →</span>
+                </div>
+            </div>
+
+            <div class="input-group" id="otp-input-box" style="display:none; background: #f8fafc; padding: 14px; border-radius: 10px; border: 1px solid #cbd5e1;">
+                <label class="input-label">Enter 6-Digit Code (<span id="otp-countdown">60</span>s remaining)</label>
+                <input type="text" id="otp-code" class="input-field" maxlength="6" placeholder="e.g. 482910" style="background: #fff; text-align: center; font-size: 15px; font-weight: bold; letter-spacing: 2px;">
+                <button class="auth-btn" style="margin-top: 10px;" onclick="verifyOtpCode()">Confirm & Authorize Login</button>
+            </div>
+            <p id="otp-status-text" style="color: #556b2f; font-size: 12px; margin-top: 8px; font-weight: 600;"></p>
+        </div>
+
+        <!-- SHARED LOADING SCREEN -->
+        <div id="loading-screen" class="screen loading-container hidden">
+            <div class="spinner"></div>
+            <div class="loading-text" id="loading-title">Establishing Secure Connection...</div>
+            <div class="loading-subtext" id="loading-subtitle">Verifying 256-Bit Encrypted Member Tunnel</div>
+        </div>
+
+        <!-- DASHBOARD FLOW WRAPPER -->
+        <div id="dashboard-wrapper" class="screen hidden" style="display:none; flex-direction:column; height:100%;">
+            
+            <!-- STATIONARY HOME HEADER (Only shown on Accounts / Home tab) -->
+            <div class="app-header" id="home-header-section">
+                <div class="header-top-row">
+                    <button class="bell-icon" onclick="switchTab('notifications')" title="Notifications">
+                        🔔
+                        <span class="bell-badge"></span>
+                    </button>
+                    <div class="header-brand">PLUTO CREDIT UNION</div>
+                    <img id="header-avatar-img" class="header-avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='%2394a3b8' viewBox='0 0 24 24'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" onclick="switchTab('more')" alt="Profile">
+                </div>
+                <div class="header-greeting" id="time-greeting">Welcome, BIANCA</div>
+            </div>
+
+            <!-- STATIONARY QUICK ACTION CHIPS ROW (Only shown on Accounts / Home tab) -->
+            <div class="quick-actions" id="home-quick-actions">
+                <div class="quick-chip" onclick="switchTab('deposit')">
+                    <svg viewBox="0 0 24 24"><path d="M4 6h2v12H4zm3 0h1v12H7zm3 0h2v12h-2zm3 0h1v12h-1zm3 0h3v12h-3z"/></svg> Deposit
+                </div>
+                <div class="quick-chip" onclick="switchTab('transfer')">
+                    <svg viewBox="0 0 24 24"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg> Zelle®
+                </div>
+                <div class="quick-chip" onclick="switchTab('billpay')">
+                    <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v-2zm-3-5V3.5L18.5 9H13z"/></svg> Bill Pay
+                </div>
+                <div class="quick-chip" onclick="switchTab('cards')">
+                    <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg> Cards
+                </div>
+            </div>
+
+            <!-- SUCCESS OVERLAY MODAL -->
+            <div id="success-modal" class="modal-overlay hidden" onclick="if(event.target === this) closeSuccessModal()">
+                <div class="success-box" onclick="event.stopPropagation()">
+                    <div class="success-icon">✓</div>
+                    <div class="success-title" id="success-modal-heading">Action Successful!</div>
+                    <div class="success-desc" id="success-modal-text" style="font-size: 13px; color: #334155; text-align: center; margin-bottom: 16px;">Your request has been processed securely.</div>
+                    <button class="auth-btn" onclick="closeSuccessModal()">Done</button>
+                </div>
+            </div>
+
+            <!-- TRANSACTION DETAILS MODAL -->
+            <div id="tx-detail-modal" class="modal-overlay hidden" onclick="if(event.target === this) closeTxDetailModal()">
+                <div class="success-box" onclick="event.stopPropagation()">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <span class="success-title" style="margin:0;">Official Member Receipt</span>
+                        <button onclick="closeTxDetailModal()" style="background:none; border:none; font-size:16px; font-weight:bold; cursor:pointer; color:#64748b;">✕</button>
+                    </div>
+                    
+                    <div class="receipt-card" id="tx-detail-content"></div>
+
+                    <button class="auth-btn" onclick="closeTxDetailModal()">Close Receipt</button>
+                </div>
+            </div>
+
+            <!-- ACCOUNT LEDGER MODAL (Full History View with Semi-Transparent Backdrop) -->
+            <div id="account-ledger-modal" class="modal-overlay hidden" onclick="if(event.target === this) closeAccountLedgerModal()">
+                <div class="success-box" style="text-align: left; max-width: 480px;" onclick="event.stopPropagation()">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <span class="success-title" id="ledger-modal-title" style="margin:0;">Account Ledger</span>
+                        <button onclick="closeAccountLedgerModal()" style="background:none; border:none; font-size:16px; font-weight:bold; cursor:pointer; color:#64748b;">✕</button>
+                    </div>
+                    
+                    <div class="receipt-card" id="ledger-modal-content" style="max-height: 380px; overflow-y: auto;"></div>
+
+                    <button class="auth-btn" onclick="closeAccountLedgerModal()">Close Ledger</button>
+                </div>
+            </div>
+
+            <!-- DOCUMENT VIEWER MODAL -->
+            <div id="document-modal" class="modal-overlay hidden" onclick="if(event.target === this) closeDocumentModal()">
+                <div class="success-box" style="text-align: left;" onclick="event.stopPropagation()">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span class="success-title" id="doc-modal-title" style="margin:0;">Statement PDF</span>
+                        <button onclick="closeDocumentModal()" style="background:none; border:none; font-size:15px; font-weight:bold; cursor:pointer; color:#64748b;">✕</button>
+                    </div>
+                    <div id="doc-modal-body" style="font-size:12px; color:#334155; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:12px; line-height: 1.4;">
+                        Loading statement document...
+                    </div>
+                    <button class="auth-btn" onclick="triggerSuccessModal('Statement Downloaded', 'The official encrypted statement PDF has been downloaded successfully.'); closeDocumentModal();">Download PDF</button>
+                </div>
+            </div>
+
+            <!-- TAB 1: ACCOUNTS SCREEN (HOME) -->
+            <div id="tab-accounts" class="app-body active">
+                <div class="section-heading">Accounts Overview ($750M Total Portfolio)</div>
+                
+                <!-- BANKING CATEGORY -->
+                <div class="category-card">
+                    <div class="category-header">
+                        <span>Banking</span>
+                        <span id="banking-total">$749,500,000.00</span>
+                    </div>
+
+                    <div class="account-sub-item" onclick="openAccountLedger('Beyond Checking ...1234', checkingBalance, 'Beyond Checking Account', 'Routing Number: 113000523\nAccount Number: 9840214321')">
+                        <div>
+                            <div class="sub-acct-title">Beyond Checking</div>
+                            <div class="sub-acct-sub">x1234 • Routing: 113000523</div>
+                        </div>
+                        <div class="sub-acct-balance" id="checking-avail">$740,000,000.00</div>
+                    </div>
+
+                    <div class="account-sub-item" onclick="openAccountLedger('Simple Savings ...5678', savingsBalance, 'Simple Savings Account', 'Routing Number: 113000523\nAccount Number: 9840215678')">
+                        <div>
+                            <div class="sub-acct-title">Simple Savings</div>
+                            <div class="sub-acct-sub">x5678 • Routing: 113000523</div>
+                        </div>
+                        <div class="sub-acct-balance" id="savings-avail">$9,500,000.00</div>
+                    </div>
+                </div>
+
+                <!-- CREDIT CARDS CATEGORY -->
+                <div class="category-card">
+                    <div class="category-header">
+                        <span>Credit Cards</span>
+                        <span>Limit: $50,000.00</span>
+                    </div>
+
+                    <div class="account-sub-item" onclick="openAccountLedger('Double Up Credit Card ...9012', 0.00, 'Double Up Rewards Credit Card', 'Credit Limit: $50,000.00\nCardholder: BIANCA FRANKFURT')">
+                        <div>
+                            <div class="sub-acct-title">Double Up℠ Credit Card</div>
+                            <div class="sub-acct-sub">x9012 • Available Limit: $50,000.00</div>
+                        </div>
+                        <div class="sub-acct-balance" style="color: #0f172a;">$0.00 Balance</div>
+                    </div>
+                </div>
+
+                <!-- INVESTMENTS CATEGORY -->
+                <div class="category-card">
+                    <div class="category-header">
+                        <span>Investments</span>
+                        <span>$500,000.00</span>
+                    </div>
+
+                    <div class="account-sub-item" onclick="openAccountLedger('Investment Portfolio ...4500', investmentBalance, 'Institutional Asset & Equity Portfolio', 'Portfolio ID: PLUTO-INV-4500')">
+                        <div>
+                            <div class="sub-acct-title">Wealth Portfolio</div>
+                            <div class="sub-acct-sub">x4500 • 24h Return: +$4,120.00 (+0.83%)</div>
+                        </div>
+                        <div class="sub-acct-balance" id="investment-avail">$500,000.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: ZELLE & ACH TRANSFER -->
+            <div id="tab-transfer" class="app-body">
+                <div class="section-heading">Zelle® & External ACH Transfer</div>
+                <div class="profile-card">
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #f1f5f9; padding-bottom:8px;">
+                        <span style="font-size:12px; font-weight:bold; color:#0f172a;">External Bank Link (ACH)</span>
+                        <button class="doc-btn" onclick="openExternalLinkModal()">Link External Bank</button>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">Transfer From Account</label>
+                        <select id="source-account" class="input-field"></select>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Recipient Full Name</label>
+                        <input type="text" id="zelle-recipient-name" class="input-field" placeholder="e.g. Johnathan Vance">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Recipient Phone Number or Email</label>
+                        <input type="text" id="zelle-recipient-contact" class="input-field" placeholder="e.g. 555-019-2831 or email@domain.com">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Narration / Memo</label>
+                        <input type="text" id="tx-narration" class="input-field" placeholder="e.g. Monthly transfer / services">
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label class="input-label">Transfer Amount ($)</label>
+                        <input type="number" id="tx-amount" class="input-field" placeholder="0.00">
+                    </div>
+                </div>
+                <button class="auth-btn" onclick="executeTransfer()">Send Zelle® / Transfer Now</button>
+                <p id="transfer-msg" style="font-size: 11px; margin-top: 8px; text-align: center; font-weight: 600;"></p>
+            </div>
+
+            <!-- TAB 3: BILL PAY -->
+            <div id="tab-billpay" class="app-body">
+                <div class="section-heading">Scheduled Bill Pay & Utilities</div>
+                <div class="profile-card">
+                    <div class="input-group">
+                        <label class="input-label">Pay From Account</label>
+                        <select id="bill-source" class="input-field">
+                            <option value="checking">Beyond Checking ...1234 ($740,000,000.00)</option>
+                            <option value="savings">Simple Savings ...5678 ($9,500,000.00)</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Biller / Payee Name</label>
+                        <select id="biller-name" class="input-field">
+                            <option value="CenterPoint Energy">CenterPoint Energy (Utilities)</option>
+                            <option value="Xfinity Internet">Xfinity High-Speed Internet</option>
+                            <option value="Houston Water Dept">City of Houston Water</option>
+                            <option value="American Express">American Express Credit Card</option>
+                            <option value="Custom Payee">Add Custom Biller...</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Account / Subscriber Number</label>
+                        <input type="text" id="bill-acct-num" class="input-field" placeholder="e.g. 8940219485">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Payment Date & Frequency</label>
+                        <input type="date" id="bill-date" class="input-field">
+                        <select id="bill-frequency" class="input-field" style="margin-top: 6px;">
+                            <option value="One-Time Payment">One-Time Payment</option>
+                            <option value="Monthly Auto-Pay">Monthly Recurring Auto-Pay</option>
+                        </select>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label class="input-label">Bill Amount ($)</label>
+                        <input type="number" id="bill-amount" class="input-field" placeholder="0.00">
+                    </div>
+                </div>
+                <button class="auth-btn" onclick="executeBillPay()">Schedule / Pay Bill Now</button>
+                <p id="bill-msg" style="font-size: 11px; margin-top: 8px; text-align: center; font-weight: 600;"></p>
+            </div>
+
+            <!-- TAB 4: MOBILE DEPOSIT -->
+            <div id="tab-deposit" class="app-body">
+                <div class="section-heading">Mobile Check Deposit & Products</div>
+                <div class="profile-card">
+                    <div class="input-group">
+                        <label class="input-label">Deposit To Account</label>
+                        <select id="deposit-account" class="input-field">
+                            <option value="checking">Beyond Checking ...1234 ($740,000,000.00)</option>
+                            <option value="savings">Simple Savings ...5678 ($9,500,000.00)</option>
+                            <option value="investment">Wealth Portfolio ...4500 ($500,000.00)</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Check Amount ($)</label>
+                        <input type="number" id="deposit-amount" class="input-field" placeholder="0.00">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Front of Check Image</label>
+                        <input type="file" accept="image/*" class="input-field" style="padding: 8px;">
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label class="input-label">Back of Check (Signed)</label>
+                        <input type="file" accept="image/*" class="input-field" style="padding: 8px;">
+                    </div>
+                </div>
+                <button class="auth-btn" onclick="executeCheckDeposit()">Submit Check Deposit</button>
+                <p id="deposit-msg" style="font-size: 11px; margin-top: 8px; text-align: center; font-weight: 600;"></p>
+            </div>
+
+            <!-- TAB 5: CARDS MANAGER -->
+            <div id="tab-cards" class="app-body">
+                <div class="section-heading">Card Manager & Controls</div>
+                
+                <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                    <button class="filter-chip active" id="btn-card-debit" onclick="switchCardView('debit')">Beyond Debit Card (••••4321)</button>
+                    <button class="filter-chip" id="btn-card-credit" onclick="switchCardView('credit')">Double Up Card (••••9012)</button>
+                </div>
+
+                <!-- DEBIT CARD VIEW -->
+                <div id="card-view-debit">
+                    <div class="debit-card-wrapper" onclick="toggleCardFlip()">
+                        <div class="debit-card" id="digital-debit-card">
+                            <div class="card-face">
+                                <div>
+                                    <div style="font-size: 13px; font-weight: bold; letter-spacing: 1px;">PLUTO CREDIT UNION</div>
+                                    <div style="font-size: 8px; opacity: 0.8;">BEYOND CHECKING DEBIT</div>
+                                </div>
+                                <div>
+                                    <div class="card-chip"></div>
+                                    <div class="card-number">4820 5678 9011 4321</div>
+                                </div>
+                                <div class="card-info-row">
+                                    <div>
+                                        <div style="font-size: 7px; opacity: 0.7;">CARDHOLDER</div>
+                                        <div class="card-holder" id="card-holder-name-debit">BIANCA FRANKFURT</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 7px; opacity: 0.7;">EXPIRES</div>
+                                        <div style="font-size: 11px; font-family: monospace;">10/29</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 7px; opacity: 0.7;">CVV</div>
+                                        <div style="font-size: 11px; font-family: monospace;">512</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-face back">
+                                <div class="magnetic-stripe"></div>
+                                <div style="padding: 0 16px;">
+                                    <div style="font-size: 7px; margin-bottom: 2px; opacity: 0.8;">AUTHORIZED SIGNATURE - ACTIVE & SECURE</div>
+                                    <div class="signature-strip">512</div>
+                                </div>
+                                <div style="padding: 0 16px; font-size: 8px; opacity: 0.7; text-align: center;">
+                                    Pluto Credit Union Member Card. Insured by NCUA. Linked to Checking ($740M).
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-card">
+                        <div class="doc-row" onclick="toggleCardLock()">
+                            <span class="doc-title" id="card-lock-status-text">Lock / Unlock Debit Card</span>
+                            <button class="doc-btn" id="card-lock-btn">Active</button>
+                        </div>
+                        <div class="doc-row" onclick="triggerSuccessModal('PIN Updated', 'Your 4-digit card PIN was updated successfully.')">
+                            <span class="doc-title">Change Card PIN</span>
+                            <button class="doc-btn">Edit</button>
+                        </div>
+                        <div class="doc-row" style="border-bottom:none;" onclick="triggerSuccessModal('Replacement Ordered', 'A physical titanium replacement debit card has been ordered to your Houston address.')">
+                            <span class="doc-title">Request Replacement Card</span>
+                            <button class="doc-btn">Order</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CREDIT CARD VIEW -->
+                <div id="card-view-credit" class="hidden">
+                    <div class="debit-card-wrapper" onclick="toggleCardFlipCredit()">
+                        <div class="debit-card" id="digital-credit-card">
+                            <div class="card-face" style="background: linear-gradient(135deg, #0f172a, #334155);">
+                                <div>
+                                    <div style="font-size: 13px; font-weight: bold; letter-spacing: 1px;">PLUTO CREDIT UNION</div>
+                                    <div style="font-size: 8px; opacity: 0.8;">DOUBLE UP REWARDS CREDIT (LIMIT: $50,000)</div>
+                                </div>
+                                <div>
+                                    <div class="card-chip"></div>
+                                    <div class="card-number">5412 8820 9012 7781</div>
+                                </div>
+                                <div class="card-info-row">
+                                    <div>
+                                        <div style="font-size: 7px; opacity: 0.7;">CARDHOLDER</div>
+                                        <div class="card-holder" id="card-holder-name-credit">BIANCA FRANKFURT</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 7px; opacity: 0.7;">EXPIRES</div>
+                                        <div style="font-size: 11px; font-family: monospace;">12/30</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 7px; opacity: 0.7;">CVV</div>
+                                        <div style="font-size: 11px; font-family: monospace;">784</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-face back" style="background: linear-gradient(135deg, #1e293b, #0f172a);">
+                                <div class="magnetic-stripe"></div>
+                                <div style="padding: 0 16px;">
+                                    <div style="font-size: 7px; margin-bottom: 2px; opacity: 0.8;">AUTHORIZED SIGNATURE - DOUBLE UP REWARDS</div>
+                                    <div class="signature-strip">784</div>
+                                </div>
+                                <div style="padding: 0 16px; font-size: 8px; opacity: 0.7; text-align: center;">
+                                    Pluto Credit Union World Elite. 2% Cash Back on All Purchases.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-card">
+                        <div class="doc-row">
+                            <span class="doc-title">Credit Limit Available</span>
+                            <span style="font-size: 12px; font-weight: bold; color: #556b2f;">$50,000.00</span>
+                        </div>
+                        <div class="doc-row" style="border-bottom:none;" onclick="triggerSuccessModal('Rewards Redeemed', '24,500 reward points redeemed for $245.00 statement credit.')">
+                            <span class="doc-title">Redeem Rewards</span>
+                            <button class="doc-btn">Redeem</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 6: NOTIFICATIONS VIEW -->
+            <div id="tab-notifications" class="app-body">
+                <div class="section-heading">Security & Member Alerts</div>
+                <div class="profile-card" id="notifications-list" style="padding: 0; overflow: hidden;">
+                    <!-- Dynamically populated clickable notification alerts -->
+                </div>
+            </div>
+
+            <!-- TAB 8: GLOBAL HISTORY & SEARCH VIEW -->
+            <div id="tab-history" class="app-body">
+                <div class="section-heading">Complete Transaction & Transfer History</div>
+                <div class="input-group" style="margin-bottom: 12px;">
+                    <input type="text" id="history-search-input" class="input-field" placeholder="Search by recipient, narration, or reference..." oninput="filterHistoryList(this.value)">
+                </div>
+                <div class="profile-card" id="global-history-list" style="padding: 10px;">
+                    <!-- Filterable history list populated dynamically -->
+                </div>
+            </div>
+
+            <!-- TAB 7: MORE / STRUCTURED OPTIONS MENU -->
+            <div id="tab-more" class="app-body" style="padding: 0;">
+                <div class="profile-header" onclick="openProfileEditModal()" style="cursor: pointer;" title="Edit Profile">
+                    <div class="avatar-container">
+                        <img id="profile-avatar" class="avatar-img" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='70' height='70' fill='%2394a3b8' viewBox='0 0 24 24'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Avatar">
+                        <label class="avatar-upload-label" title="Upload Photo" onclick="event.stopPropagation();">
+                            📷
+                            <input type="file" id="image-file-input" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
+                        </label>
+                    </div>
+                    <div class="profile-name" id="display-profile-name">Bianca Frankfurt</div>
+                    <div class="profile-email-sub" id="display-profile-email">biancafrankfuurt092@gmail.com</div>
+                    <div style="font-size: 10px; opacity: 0.9; margin-top: 4px; text-decoration: underline;">Tap to Edit Profile & Personal Details</div>
+                </div>
+
+                <div style="padding: 14px 16px; max-width: 800px; margin: 0 auto; width: 100%; box-sizing: border-box;">
+                    
+                    <!-- Structured Banking Menus -->
+                    <div class="menu-section">
+                        <div class="menu-header" onclick="toggleMenuAccordion('acc-menu')">
+                            <span>Accounts & Portfolios</span>
+                            <span id="acc-menu-arrow">▼</span>
+                        </div>
+                        <div class="menu-content" id="acc-menu">
+                            <div class="menu-sub-item" onclick="switchTab('accounts')"><span>View All Accounts ($750M)</span><span>→</span></div>
+                            <div class="menu-sub-item" onclick="openAccountLedger('Beyond Checking ...1234', checkingBalance, 'Beyond Checking', 'Routing Number: 113000523\nAccount Number: 9840214321')"><span>Checking Details & Routing</span><span>→</span></div>
+                            <div class="menu-sub-item" onclick="openAccountLedger('Simple Savings ...5678', savingsBalance, 'Simple Savings', 'Routing Number: 113000523\nAccount Number: 9840215678')"><span>Savings & APY Breakdown</span><span>→</span></div>
+                        </div>
+                    </div>
+
+                    <div class="menu-section">
+                        <div class="menu-header" onclick="toggleMenuAccordion('transfer-menu')">
+                            <span>Transfer & Pay</span>
+                            <span id="transfer-menu-arrow">▼</span>
+                        </div>
+                        <div class="menu-content" id="transfer-menu">
+                            <div class="menu-sub-item" onclick="switchTab('transfer')"><span>Zelle® Instant Transfer</span><span>→</span></div>
+                            <div class="menu-sub-item" onclick="switchTab('transfer')"><span>ACH Wire / External Bank Link</span><span>→</span></div>
+                            <div class="menu-sub-item" onclick="switchTab('billpay')"><span>Bill Pay & Scheduling</span><span>→</span></div>
+                        </div>
+                    </div>
+
+                    <div class="menu-section">
+                        <div class="menu-header" onclick="toggleMenuAccordion('planning-menu')">
+                            <span>Financial Planning & FICO Score</span>
+                            <span id="planning-menu-arrow">▼</span>
+                        </div>
+                        <div class="menu-content" id="planning-menu">
+                            <div class="menu-sub-item" onclick="triggerSuccessModal('FICO Score 8', 'Your Experian FICO Score is 792 (Exceptional). No negative marks found.')">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <div style="width:28px; height:28px; border-radius:50%; background:#f0f4ec; border:2px solid #556b2f; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold; color:#556b2f;">792</div>
+                                    <span>Experian® FICO Score 8</span>
+                                </div>
+                                <span>View →</span>
+                            </div>
+                            <div class="menu-sub-item" onclick="triggerSuccessModal('Wealth Advisory', 'Your dedicated wealth portfolio manager is available via secure chat.')"><span>Dedicated Wealth Advisor</span><span>→</span></div>
+                        </div>
+                    </div>
+
+                    <div class="menu-section">
+                        <div class="menu-header" onclick="toggleMenuAccordion('tools-menu')">
+                            <span>Tools & Security</span>
+                            <span id="tools-menu-arrow">▼</span>
+                        </div>
+                        <div class="menu-content" id="tools-menu">
+                            <div class="menu-sub-item" onclick="switchTab('cards')"><span>Card Manager & Controls</span><span>→</span></div>
+                            <div class="menu-sub-item" onclick="switchTab('notifications')"><span>Security Alerts & Notifications</span><span>→</span></div>
+                        </div>
+                    </div>
+
+                    <div class="section-heading" style="margin-top:10px;">Utilities & Support</div>
+                    <div class="menu-section">
+                        <div class="menu-header" onclick="toggleMenuAccordion('utils-menu')">
+                            <span>Settings & Documents</span>
+                            <span id="utils-menu-arrow">▼</span>
+                        </div>
+                        <div class="menu-content" id="utils-menu">
+                            <div class="menu-sub-item" onclick="openProfileEditModal()"><span>Edit Profile & Personal Details (SSN & Address)</span><span>→</span></div>
+                            <div class="menu-sub-item" onclick="viewStatement('October 2026')"><span>October 2026 Statement.pdf</span><span>View</span></div>
+                            <div class="menu-sub-item" onclick="viewStatement('Form 1099-INT')"><span>Tax Form 1099-INT.pdf</span><span>View</span></div>
+                        </div>
+                    </div>
+
+                    <button class="auth-btn" style="background: #dc2626; margin-top: 16px;" onclick="handleLogout()">Sign Out / Logout</button>
+                </div>
+            </div>
+
+            <!-- Bottom Navigation Bar -->
+            <div class="bottom-nav">
+                <button class="nav-item active" id="nav-accounts" onclick="switchTab('accounts', true)">
+                    <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg></div>
+                    <span class="nav-label">Accounts</span>
+                </button>
+                <button class="nav-item" id="nav-transfer" onclick="switchTab('transfer', true)">
+                    <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg></div>
+                    <span class="nav-label">Transfer</span>
+                </button>
+                <button class="nav-item" id="nav-history" onclick="switchTab('history', true)">
+                    <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg></div>
+                    <span class="nav-label">History</span>
+                </button>
+                <button class="nav-item" id="nav-billpay" onclick="switchTab('billpay', true)">
+                    <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v-2zm-3-5V3.5L18.5 9H13z"/></svg></div>
+                    <span class="nav-label">Bill Pay</span>
+                </button>
+                <button class="nav-item" id="nav-more" onclick="switchTab('more', true)">
+                    <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg></div>
+                    <span class="nav-label">More</span>
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- PROFILE EDIT MODAL -->
+    <div id="profile-edit-modal" class="modal-overlay hidden" onclick="if(event.target === this) closeProfileEditModal()">
+        <div class="success-box" style="text-align: left; max-height: 90vh; overflow-y: auto;" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <span class="success-title" style="margin:0;">Edit Profile & Personal Details</span>
+                <button onclick="closeProfileEditModal()" style="background:none; border:none; font-size:16px; font-weight:bold; cursor:pointer; color:#64748b;">✕</button>
+            </div>
+            <div class="input-group">
+                <label class="input-label">Full Legal Name</label>
+                <input type="text" id="p-name" class="input-field" value="Bianca Frankfurt">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Residential Address</label>
+                <input type="text" id="p-address" class="input-field" value="13359 Woodforest Boulevard, Houston, TX 77015">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Social Security Number (SSN)</label>
+                <input type="password" id="p-ssn" class="input-field" value="•••-••-4821" maxlength="11">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Phone Number</label>
+                <input type="text" id="p-phone" class="input-field" value="278-476-190">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Email Address</label>
+                <input type="text" id="p-email" class="input-field" value="biancafrankfuurt092@gmail.com">
+            </div>
+            <button class="auth-btn" onclick="saveProfileData()">Save Profile Changes</button>
+        </div>
+    </div>
+
+    <!-- EXTERNAL BANK LINK MODAL -->
+    <div id="external-link-modal" class="modal-overlay hidden" onclick="if(event.target === this) closeExternalLinkModal()">
+        <div class="success-box" style="text-align: left;" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <span class="success-title" style="margin:0;">Link External Bank (ACH)</span>
+                <button onclick="closeExternalLinkModal()" style="background:none; border:none; font-size:16px; font-weight:bold; cursor:pointer; color:#64748b;">✕</button>
+            </div>
+            <div class="input-group">
+                <label class="input-label">Bank Institution Name</label>
+                <input type="text" id="ext-bank-name" class="input-field" placeholder="e.g. Chase, Bank of America">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Routing Number (9-Digit ABA)</label>
+                <input type="text" id="ext-routing" class="input-field" maxlength="9" placeholder="e.g. 021000021">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Account Number</label>
+                <input type="text" id="ext-account" class="input-field" placeholder="e.g. 98451234">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Account Type</label>
+                <select id="ext-type" class="input-field">
+                    <option value="Checking">Checking Account</option>
+                    <option value="Savings">Savings Account</option>
+                </select>
+            </div>
+            <button class="auth-btn" onclick="submitExternalBank()">Verify & Link Account</button>
+        </div>
+    </div>
+
+    <script>
+        let checkingBalance = parseFloat(localStorage.getItem('pluto_checking')) || 740000000.00;
+        let savingsBalance = parseFloat(localStorage.getItem('pluto_savings')) || 9500000.00;
+        let investmentBalance = parseFloat(localStorage.getItem('pluto_investment')) || 500000.00;
+
+        function getHoustonTimestamp() {
+            const now = new Date();
+            return now.toLocaleString('en-US', {
+                timeZone: 'America/Chicago',
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true,
+                timeZoneName: 'short'
+            });
+        }
+
+        let txHistory = JSON.parse(localStorage.getItem('pluto_history')) || [
+            { title: "Incoming Institutional Wire", date: "Oct 25, 2026, 09:15:22 AM CDT", amount: "+$740,000,000.00", type: "credit", status: "Completed", narration: "Primary membership capital funding injection", ref: "PLUTO-WIRE-740M-2026", account: "Beyond Checking ...1234", recipient: "Pluto Credit Union", isZelle: false, bankName: "Federal Reserve Bank", routingNumber: "113000523", accountNumber: "••••1234", recipientAddress: "13359 Woodforest Boulevard, Houston, TX" },
+            { title: "Initial Savings Transfer", date: "Oct 22, 2026, 02:40:11 PM CDT", amount: "+$9,500,000.00", type: "credit", status: "Completed", narration: "High yield savings initialization deposit", ref: "PLUTO-SAV-INIT-2026", account: "Simple Savings ...5678", recipient: "Bianca Frankfurt", isZelle: false, bankName: "Pluto Credit Union", routingNumber: "113000523", accountNumber: "••••5678", recipientAddress: "13359 Woodforest Boulevard, Houston, TX" }
+        ];
+
+        let notificationsList = JSON.parse(localStorage.getItem('pluto_notifications')) || [
+            { title: "Institutional Wire Credited", desc: "$740,000,000.00 successfully posted to Beyond Checking.", time: "Today, 3:15:00 PM CDT • Secure Fedwire", ref: "PLUTO-WIRE-740M-2026", amount: "+$740,000,000.00", account: "Beyond Checking ...1234" },
+            { title: "Biometric Login Verified", desc: "New authenticated session from trusted mobile enclave.", time: "Today, 2:45:10 PM CDT • Houston, TX", ref: "AUTH-BIO-8821", amount: "$0.00", account: "Member Enclave" }
+        ];
+
+        let idleTimer;
+
+        function resetIdleTimer() {
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => {
+                if (sessionStorage.getItem('pluto_logged_in') === 'true') {
+                    document.getElementById('timeout-screen').classList.remove('hidden');
+                }
+            }, 180000);
+        }
+
+        ['mousemove', 'keydown', 'click', 'touchstart'].forEach(evt => {
+            window.addEventListener(evt, resetIdleTimer);
+        });
+
+        function unlockSession() {
+            const pin = document.getElementById('unlock-pin').value.trim();
+            if (pin.length === 4) {
+                document.getElementById('timeout-screen').classList.add('hidden');
+                document.getElementById('unlock-pin').value = '';
+                resetIdleTimer();
+            } else {
+                triggerSuccessModal('Authentication Error', 'Please enter your valid 4-digit security PIN.');
+            }
+        }
+
+        function syncAppData() {
+            checkingBalance = parseFloat(localStorage.getItem('pluto_checking')) || 740000000.00;
+            savingsBalance = parseFloat(localStorage.getItem('pluto_savings')) || 9500000.00;
+            investmentBalance = parseFloat(localStorage.getItem('pluto_investment')) || 500000.00;
+            
+            const savedHistory = localStorage.getItem('pluto_history');
+            if (savedHistory) {
+                txHistory = JSON.parse(savedHistory);
+            }
+
+            const savedNotifs = localStorage.getItem('pluto_notifications');
+            if (savedNotifs) {
+                notificationsList = JSON.parse(savedNotifs);
+            }
+
+            updateUIBalances();
+            renderNotifications();
+            renderGlobalHistory("");
+            loadProfileSettings();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            syncAppData();
+
+            if (sessionStorage.getItem('pluto_logged_in') === 'true') {
+                showDashboard(false);
+            }
+
+            window.addEventListener('popstate', (event) => {
+                if (sessionStorage.getItem('pluto_logged_in') === 'true') {
+                    const hash = window.location.hash.replace('#', '') || 'accounts';
+                    switchTab(hash, false);
+                }
+            });
+        });
+
+        function toggleMenuAccordion(menuId) {
+            const content = document.getElementById(menuId);
+            content.classList.toggle('open');
+        }
+
+        function openProfileEditModal() {
+            document.getElementById('profile-edit-modal').classList.remove('hidden');
+        }
+        function closeProfileEditModal() {
+            document.getElementById('profile-edit-modal').classList.add('hidden');
+        }
+
+        function loadProfileSettings() {
+            const savedName = localStorage.getItem('pluto_name') || "Bianca Frankfurt";
+            const savedEmail = localStorage.getItem('pluto_email') || "biancafrankfuurt092@gmail.com";
+            const savedPhone = localStorage.getItem('pluto_phone') || "278-476-190";
+            const savedAddress = localStorage.getItem('pluto_address') || "13359 Woodforest Boulevard, Houston, TX 77015";
+            const savedSSN = localStorage.getItem('pluto_ssn') || "•••-••-4821";
+            const savedAvatar = localStorage.getItem('pluto_avatar');
+
+            const nameEl = document.getElementById('p-name');
+            if (nameEl && document.activeElement !== nameEl) nameEl.value = savedName;
+            
+            const dispName = document.getElementById('display-profile-name');
+            if (dispName) dispName.innerText = savedName;
+
+            const cardHolder1 = document.getElementById('card-holder-name-debit');
+            const cardHolder2 = document.getElementById('card-holder-name-credit');
+            if (cardHolder1) cardHolder1.innerText = savedName.toUpperCase();
+            if (cardHolder2) cardHolder2.innerText = savedName.toUpperCase();
+
+            const emailEl = document.getElementById('p-email');
+            if (emailEl && document.activeElement !== emailEl) emailEl.value = savedEmail;
+            const dispEmail = document.getElementById('display-profile-email');
+            if (dispEmail) dispEmail.innerText = savedEmail;
+
+            const phoneEl = document.getElementById('p-phone');
+            if (phoneEl && document.activeElement !== phoneEl) phoneEl.value = savedPhone;
+
+            const addressEl = document.getElementById('p-address');
+            if (addressEl && document.activeElement !== addressEl) addressEl.value = savedAddress;
+
+            const ssnEl = document.getElementById('p-ssn');
+            if (ssnEl && document.activeElement !== ssnEl) ssnEl.value = savedSSN;
+
+            if (savedAvatar) {
+                const profAvatar = document.getElementById('profile-avatar');
+                const headAvatar = document.getElementById('header-avatar-img');
+                if (profAvatar) profAvatar.src = savedAvatar;
+                if (headAvatar) headAvatar.src = savedAvatar;
+            }
+        }
+
+        function updateUIBalances() {
+            const fmt = (val) => "$" + val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            
+            const chkAvail = document.getElementById('checking-avail');
+            const savAvail = document.getElementById('savings-avail');
+            const invAvail = document.getElementById('investment-avail');
+            const bankingTotal = document.getElementById('banking-total');
+
+            const totalBanking = checkingBalance + savingsBalance;
+
+            if (chkAvail) chkAvail.innerText = fmt(checkingBalance);
+            if (savAvail) savAvail.innerText = fmt(savingsBalance);
+            if (invAvail) invAvail.innerText = fmt(investmentBalance);
+            if (bankingTotal) bankingTotal.innerText = fmt(totalBanking);
+
+            const sourceSelect = document.getElementById('source-account');
+            if (sourceSelect) {
+                sourceSelect.innerHTML = `
+                    <option value="checking">Beyond Checking ...1234 (${fmt(checkingBalance)})</option>
+                    <option value="savings">Simple Savings ...5678 (${fmt(savingsBalance)})</option>
+                    <option value="investment">Wealth Portfolio ...4500 (${fmt(investmentBalance)})</option>
+                `;
+            }
+        }
+
+        function renderNotifications() {
+            const listEl = document.getElementById('notifications-list');
+            if (!listEl) return;
+            listEl.innerHTML = "";
+            notificationsList.forEach((notif, index) => {
+                const isLast = index === notificationsList.length - 1;
+                listEl.innerHTML += `
+                    <div onclick="openNotificationReceipt('${notif.title}', '${notif.desc}', '${notif.time}', '${notif.ref || 'PLUTO-NOTIF'}', '${notif.amount || '$0.00'}', '${notif.account || 'Beyond Checking'}')" style="background: #fff; padding: 12px 14px; ${isLast ? '' : 'border-bottom: 1px solid #e2e8f0;'} cursor: pointer; display: flex; flex-direction: column;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#fff'">
+                        <div style="font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 2px;">${notif.title}</div>
+                        <div style="font-size: 11px; color: #475569; margin-bottom: 4px;">${notif.desc}</div>
+                        <div style="font-size: 10px; color: #64748b;">${notif.time}</div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderGlobalHistory(filterText) {
+            const listEl = document.getElementById('global-history-list');
+            if (!listEl) return;
+            listEl.innerHTML = "";
+
+            const query = filterText ? filterText.toLowerCase() : "";
+            const filtered = txHistory.filter(tx => 
+                (tx.title && tx.title.toLowerCase().includes(query)) ||
+                (tx.narration && tx.narration.toLowerCase().includes(query)) ||
+                (tx.recipient && tx.recipient.toLowerCase().includes(query)) ||
+                (tx.ref && tx.ref.toLowerCase().includes(query))
+            );
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = `<div style="font-size: 12px; color: #64748b; text-align: center; padding: 20px;">No matching transaction records found.</div>`;
+                return;
+            }
+
+            filtered.forEach(tx => {
+                const txJson = JSON.stringify(tx).replace(/"/g, '&quot;');
+                listEl.innerHTML += `
+                    <div onclick="openTxReceiptFromJSON(${txJson})" style="background: #fff; padding: 12px 14px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; cursor: pointer;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#fff'">
+                        <div>
+                            <div style="font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 2px;">${tx.title}</div>
+                            <div style="font-size: 11px; color: #64748b;">${tx.date} • ${tx.status || 'Completed'} • ${tx.account || 'Beyond Checking'}</div>
+                            <div style="font-size: 10px; color: #475569; margin-top: 4px;">${tx.narration || tx.ref}</div>
+                        </div>
+                        <div style="font-size: 13px; font-weight: 800; color: ${tx.type === 'credit' ? '#556b2f' : '#dc2626'}; text-align: right;">${tx.amount}</div>
+                    </div>
+                `;
+            });
+        }
+
+        function filterHistoryList(val) {
+            renderGlobalHistory(val);
+        }
+
+        function openNotificationReceipt(title, desc, time, ref, amount, account) {
+            const content = `
+                <div class="receipt-row"><span class="receipt-label">Alert Title</span><span class="receipt-value">${title}</span></div>
+                <div class="receipt-row"><span class="receipt-label">Description</span><span class="receipt-value">${desc}</span></div>
+                <div class="receipt-row"><span class="receipt-label">Date & Time</span><span class="receipt-value">${time}</span></div>
+                <div class="receipt-row"><span class="receipt-label">Reference ID</span><span class="receipt-value">${ref}</span></div>
+                <div class="receipt-row"><span class="receipt-label">Linked Account</span><span class="receipt-value">${account}</span></div>
+                <div class="receipt-row"><span class="receipt-label">Amount</span><span class="receipt-value" style="color: #556b2f;">${amount}</span></div>
+            `;
+            document.getElementById('tx-detail-content').innerHTML = content;
+            document.getElementById('tx-detail-modal').classList.remove('hidden');
+        }
+
+        function pushNotification(title, desc, ref, amount, account) {
+            const timeStr = getHoustonTimestamp() + " • Secure Network";
+            notificationsList.unshift({ title, desc, time: timeStr, ref: ref || 'PLUTO-TX-' + Math.floor(1000 + Math.random()*9000), amount: amount || '$0.00', account: account || 'Beyond Checking ...1234' });
+            localStorage.setItem('pluto_notifications', JSON.stringify(notificationsList));
+            renderNotifications();
+        }
+
+        function openAccountLedger(accountName, balance, subtitle, details) {
+            const fmt = (val) => "$" + val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('ledger-modal-title').innerText = accountName;
+
+            let matchingTx = [];
+            if (accountName.toLowerCase().includes('checking')) {
+                matchingTx = txHistory.filter(tx => tx.account && tx.account.toLowerCase().includes('checking'));
+            } else if (accountName.toLowerCase().includes('savings')) {
+                matchingTx = txHistory.filter(tx => tx.account && tx.account.toLowerCase().includes('savings'));
+            } else if (accountName.toLowerCase().includes('investment') || accountName.toLowerCase().includes('portfolio')) {
+                matchingTx = txHistory.filter(tx => tx.account && tx.account.toLowerCase().includes('portfolio'));
+            } else if (accountName.toLowerCase().includes('credit')) {
+                matchingTx = [
+                    { title: "Double Up Rewards Credit", date: getHoustonTimestamp(), amount: "$0.00 Balance", type: "credit", status: "Active Limit ($50,000)", narration: "Available World Elite credit line", ref: "CC-9012-ACTIVE", account: "Double Up ...9012", recipient: "Bianca Frankfurt" }
+                ];
+            } else {
+                matchingTx = txHistory;
+            }
+            
+            let html = `
+                <div class="receipt-row">
+                    <span class="receipt-label">Account Type</span>
+                    <span class="receipt-value">${subtitle}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Details</span>
+                    <span class="receipt-value" style="font-size: 11px; font-family: monospace; white-space: pre-line;">${details}</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Current Balance</span>
+                    <span class="receipt-value" style="color: #556b2f;">${fmt(balance)}</span>
+                </div>
+                <div style="font-size: 11px; font-weight: bold; color: #475569; margin: 12px 0 6px 0; text-transform: uppercase;">Complete Transaction History (Tap Any Card):</div>
+            `;
+
+            if (matchingTx.length === 0) {
+                html += `<div style="font-size: 12px; color: #64748b; text-align: center; padding: 15px;">No transactions recorded for this account yet.</div>`;
+            } else {
+                matchingTx.forEach((tx) => {
+                    const txJson = JSON.stringify(tx).replace(/"/g, '&quot;');
+                    html += `
+                        <div onclick="openTxReceiptFromJSON(${txJson})" style="background: #fff; padding: 12px 14px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; cursor: pointer;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#fff'">
+                            <div>
+                                <div style="font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 2px;">${tx.title}</div>
+                                <div style="font-size: 11px; color: #64748b;">${tx.date} • ${tx.status || 'Completed'}</div>
+                                <div style="font-size: 10px; color: #475569; margin-top: 4px;">${tx.narration || tx.ref}</div>
+                            </div>
+                            <div style="font-size: 13px; font-weight: 800; color: ${tx.type === 'credit' ? '#556b2f' : '#dc2626'}; text-align: right;">${tx.amount}</div>
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('ledger-modal-content').innerHTML = html;
+            document.getElementById('account-ledger-modal').classList.remove('hidden');
+        }
+
+        function openTxReceiptFromJSON(tx) {
+            const content = `
+                <div class="receipt-row"><span class="receipt-label">Transaction</span><span class="receipt-value">${tx.title}</span></div>
+                <div class="receipt-row"><span class="receipt-label">Date & Time</span><span class="receipt-value">${tx.date}</span></div>
+                <div class="receipt-row"><span class="receipt-label">Reference ID</span><span class="receipt-value">${tx.ref || 'PLUTO-TX-001'}</span></div>
+                <div class="receipt-row"><span class="receipt-label">Status</span><span class="receipt-value" style="color: #556b2f;">${tx.status || 'Completed'}</span></div>
+                <div class="receipt-row"><span class="receipt-label">Account</span><span class="receipt-value">${tx.account || 'Beyond Checking ...1234'}</span></div>
+                <div class="receipt-row"><span class="receipt-label">Recipient</span><span class="receipt-value">${tx.recipient || 'Bianca Frankfurt'}</span></div>
+                <div class="receipt-row"><span class="receipt-label">Narration</span><span class="receipt-value">${tx.narration || 'Authorized member transfer'}</span></div>
+                <div class="receipt-row"><span class="receipt-label">Amount</span><span class="receipt-value" style="color: ${tx.type === 'credit' ? '#556b2f' : '#dc2626'}; font-size: 14px;">${tx.amount}</span></div>
+            `;
+            document.getElementById('tx-detail-content').innerHTML = content;
+            document.getElementById('tx-detail-modal').classList.remove('hidden');
+        }
+
+        function closeAccountLedgerModal() {
+            document.getElementById('account-ledger-modal').classList.add('hidden');
+        }
+
+        function closeTxDetailModal() {
+            document.getElementById('tx-detail-modal').classList.add('hidden');
+        }
+
+        function openExternalLinkModal() {
+            document.getElementById('external-link-modal').classList.remove('hidden');
+        }
+        function closeExternalLinkModal() {
+            document.getElementById('external-link-modal').classList.add('hidden');
+        }
+        function submitExternalBank() {
+            const bName = document.getElementById('ext-bank-name').value.trim();
+            if (!bName) {
+                triggerSuccessModal('Error', 'Please enter a valid bank institution name.');
+                return;
+            }
+            closeExternalLinkModal();
+            triggerSuccessModal('External Bank Linked!', `Your ${bName} account has been successfully linked via secure ACH network.`);
+        }
+
+        function switchCardView(cardType) {
+            const debitView = document.getElementById('card-view-debit');
+            const creditView = document.getElementById('card-view-credit');
+            const btnDebit = document.getElementById('btn-card-debit');
+            const btnCredit = document.getElementById('btn-card-credit');
+
+            if (cardType === 'debit') {
+                debitView.classList.remove('hidden');
+                creditView.classList.add('hidden');
+                btnDebit.classList.add('active');
+                btnCredit.classList.remove('active');
+            } else {
+                debitView.classList.add('hidden');
+                creditView.classList.remove('hidden');
+                btnCredit.classList.add('active');
+                btnDebit.classList.remove('active');
+            }
+        }
+
+        function toggleCardFlip() {
+            document.getElementById('digital-debit-card').classList.toggle('flipped');
+        }
+        function toggleCardFlipCredit() {
+            document.getElementById('digital-credit-card').classList.toggle('flipped');
+        }
+
+        function toggleCardLock() {
+            cardLocked = !cardLocked;
+            const statusText = document.getElementById('card-lock-status-text');
+            const lockBtn = document.getElementById('card-lock-btn');
+            if (cardLocked) {
+                statusText.innerText = 'Card is LOCKED (Security Enforced)';
+                lockBtn.innerText = 'LOCKED';
+                lockBtn.style.color = '#dc2626';
+                triggerSuccessModal('Card Locked', 'Your debit card has been temporarily locked for security.');
+            } else {
+                statusText.innerText = 'Lock / Unlock Debit Card';
+                lockBtn.innerText = 'Active';
+                lockBtn.style.color = '#556b2f';
+                triggerSuccessModal('Card Unlocked', 'Your debit card is now unlocked and active for purchases.');
+            }
+        }
+
+        function viewStatement(docName) {
+            document.getElementById('doc-modal-title').innerText = docName;
+            document.getElementById('doc-modal-body').innerText = `PLUTO CREDIT UNION - MEMBER STATEMENT\n\nDocument: ${docName}\nMember: Bianca Frankfurt\nAddress: 13359 Woodforest Boulevard, Houston, TX 77015\nStatus: Verified & Encrypted\nTotal Portfolio: $750,000,000.00`;
+            document.getElementById('document-modal').classList.remove('hidden');
+        }
+
+        function closeDocumentModal() {
+            document.getElementById('document-modal').classList.add('hidden');
+        }
+
+        function triggerSuccessModal(heading, text) {
+            document.getElementById('success-modal-heading').innerText = heading;
+            document.getElementById('success-modal-text').innerText = text;
+            document.getElementById('success-modal').classList.remove('hidden');
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+        }
+
+        function executeCheckDeposit() {
+            if (document.activeElement) document.activeElement.blur();
+            window.scrollTo(0, 0);
+
+            const acc = document.getElementById('deposit-account').value;
+            const amountVal = parseFloat(document.getElementById('deposit-amount').value);
+            const msgEl = document.getElementById('deposit-msg');
+
+            if (isNaN(amountVal) || amountVal <= 0) {
+                msgEl.style.color = "#dc2626";
+                msgEl.innerText = "Please enter a valid check amount.";
+                return;
+            }
+
+            document.getElementById("dashboard-wrapper").classList.add("hidden");
+            document.getElementById("dashboard-wrapper").style.display = "none";
+            document.getElementById("loading-title").innerText = "Processing Check Deposit...";
+            document.getElementById("loading-subtitle").innerText = "Clearing secure check funds through Federal Reserve";
+            document.getElementById("loading-screen").classList.remove("hidden");
+
+            setTimeout(() => {
+                if (acc === 'checking') checkingBalance += amountVal;
+                if (acc === 'savings') savingsBalance += amountVal;
+                if (acc === 'investment') investmentBalance += amountVal;
+
+                localStorage.setItem('pluto_checking', checkingBalance);
+                localStorage.setItem('pluto_savings', savingsBalance);
+                localStorage.setItem('pluto_investment', investmentBalance);
+
+                const dateStr = getHoustonTimestamp();
+                const refId = "DEP-" + Math.floor(100000 + Math.random() * 900000);
+                const formattedAmt = `+$${amountVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+                txHistory.unshift({
+                    title: `Mobile Check Deposit (${acc.toUpperCase()})`,
+                    date: dateStr,
+                    amount: formattedAmt,
+                    type: "credit",
+                    status: "Completed",
+                    narration: `Mobile check cleared and posted to ${acc} account`,
+                    ref: refId,
+                    account: acc === 'checking' ? 'Beyond Checking ...1234' : (acc === 'savings' ? 'Simple Savings ...5678' : 'Wealth Portfolio ...4500'),
+                    recipient: "Bianca Frankfurt",
+                    isZelle: false
+                });
+                localStorage.setItem('pluto_history', JSON.stringify(txHistory));
+
+                pushNotification("Mobile Check Accepted", `${formattedAmt} deposited to ${acc}.`, refId, formattedAmt, acc === 'checking' ? 'Beyond Checking ...1234' : 'Simple Savings ...5678');
+
+                document.getElementById("loading-screen").classList.add("hidden");
+                var wrapper = document.getElementById("dashboard-wrapper");
+                wrapper.classList.remove("hidden");
+                wrapper.style.display = "flex";
+
+                syncAppData();
+                document.getElementById('deposit-amount').value = "";
+                msgEl.innerText = "";
+
+                triggerSuccessModal("Check Deposited!", `Your check deposit of $${amountVal.toLocaleString('en-US', { minimumFractionDigits: 2 })} has been accepted successfully.`);
+            }, 2500);
+        }
+
+        function executeTransfer() {
+            if (document.activeElement) document.activeElement.blur();
+            window.scrollTo(0, 0);
+
+            const source = document.getElementById('source-account').value;
+            const recipientName = document.getElementById('zelle-recipient-name').value.trim();
+            const recipientContact = document.getElementById('zelle-recipient-contact').value.trim();
+            const narration = document.getElementById('tx-narration').value.trim() || "Zelle® transfer";
+            const amountVal = parseFloat(document.getElementById('tx-amount').value);
+            const msgEl = document.getElementById('transfer-msg');
+
+            if (!recipientName || !recipientContact || isNaN(amountVal) || amountVal <= 0) {
+                msgEl.style.color = "#dc2626";
+                msgEl.innerText = "Please enter valid recipient name, phone/email, and amount.";
+                return;
+            }
+
+            let currentBal = checkingBalance;
+            if (source === 'savings') currentBal = savingsBalance;
+            if (source === 'investment') currentBal = investmentBalance;
+
+            if (amountVal > currentBal) {
+                msgEl.style.color = "#dc2626";
+                msgEl.innerText = "Insufficient funds in selected account.";
+                return;
+            }
+
+            document.getElementById("dashboard-wrapper").classList.add("hidden");
+            document.getElementById("dashboard-wrapper").style.display = "none";
+            document.getElementById("loading-title").innerText = "Executing Zelle® Transfer...";
+            document.getElementById("loading-subtitle").innerText = "Authorizing secure transfer via encrypted network";
+            document.getElementById("loading-screen").classList.remove("hidden");
+
+            setTimeout(() => {
+                if (source === 'checking') checkingBalance -= amountVal;
+                if (source === 'savings') savingsBalance -= amountVal;
+                if (source === 'investment') investmentBalance -= amountVal;
+
+                localStorage.setItem('pluto_checking', checkingBalance);
+                localStorage.setItem('pluto_savings', savingsBalance);
+                localStorage.setItem('pluto_investment', investmentBalance);
+
+                const sourceAccountName = source === 'checking' ? 'Beyond Checking ...1234' : (source === 'savings' ? 'Simple Savings ...5678' : 'Wealth Portfolio ...4500');
+
+                const dateStr = getHoustonTimestamp();
+                const formattedAmt = `-$${amountVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                const refId = "ZELLE-" + Math.floor(100000 + Math.random() * 900000);
+
+                txHistory.unshift({
+                    title: `Zelle® Transfer to ${recipientName}`,
+                    date: dateStr,
+                    amount: formattedAmt,
+                    type: "debit",
+                    status: "Completed",
+                    narration: `${narration} (${recipientContact})`,
+                    ref: refId,
+                    account: sourceAccountName,
+                    recipient: recipientName
+                });
+                localStorage.setItem('pluto_history', JSON.stringify(txHistory));
+
+                pushNotification("Zelle® Payment Sent", `${formattedAmt} successfully sent to ${recipientName} (${recipientContact}).`, refId, formattedAmt, sourceAccountName);
+
+                document.getElementById("loading-screen").classList.add("hidden");
+                var wrapper = document.getElementById("dashboard-wrapper");
+                wrapper.classList.remove("hidden");
+                wrapper.style.display = "flex";
+
+                syncAppData();
+
+                document.getElementById('zelle-recipient-name').value = "";
+                document.getElementById('zelle-recipient-contact').value = "";
+                document.getElementById('tx-narration').value = "";
+                document.getElementById('tx-amount').value = "";
+                msgEl.innerText = "";
+
+                triggerSuccessModal("Zelle® Transfer Completed!", `Your Zelle® transfer of $${amountVal.toLocaleString('en-US', { minimumFractionDigits: 2 })} to ${recipientName} has been completed.`);
+            }, 2500);
+        }
+
+        function executeBillPay() {
+            if (document.activeElement) document.activeElement.blur();
+            window.scrollTo(0, 0);
+
+            const source = document.getElementById('bill-source').value;
+            const biller = document.getElementById('biller-name').value;
+            const amountVal = parseFloat(document.getElementById('bill-amount').value);
+            const msgEl = document.getElementById('bill-msg');
+
+            if (isNaN(amountVal) || amountVal <= 0) {
+                msgEl.style.color = "#dc2626";
+                msgEl.innerText = "Please enter a valid bill amount.";
+                return;
+            }
+
+            let currentBal = (source === 'checking') ? checkingBalance : savingsBalance;
+            if (amountVal > currentBal) {
+                msgEl.style.color = "#dc2626";
+                msgEl.innerText = "Insufficient funds in selected account.";
+                return;
+            }
+
+            document.getElementById("dashboard-wrapper").classList.add("hidden");
+            document.getElementById("dashboard-wrapper").style.display = "none";
+            document.getElementById("loading-title").innerText = "Processing Bill Payment...";
+            document.getElementById("loading-subtitle").innerText = "Transmitting secure payment to payee";
+            document.getElementById("loading-screen").classList.remove("hidden");
+
+            setTimeout(() => {
+                if (source === 'checking') checkingBalance -= amountVal;
+                else savingsBalance -= amountVal;
+
+                localStorage.setItem('pluto_checking', checkingBalance);
+                localStorage.setItem('pluto_savings', savingsBalance);
+
+                const dateStr = getHoustonTimestamp();
+                const formattedAmt = `-$${amountVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                const refId = "BILL-" + Math.floor(100000 + Math.random() * 900000);
+                const sourceAcctName = source === 'checking' ? 'Beyond Checking ...1234' : 'Simple Savings ...5678';
+
+                txHistory.unshift({
+                    title: `Bill Pay: ${biller}`,
+                    date: dateStr,
+                    amount: formattedAmt,
+                    type: "debit",
+                    status: "Completed",
+                    narration: `Scheduled bill payment to ${biller}`,
+                    ref: refId,
+                    account: sourceAcctName,
+                    recipient: biller
+                });
+                localStorage.setItem('pluto_history', JSON.stringify(txHistory));
+
+                pushNotification("Bill Payment Processed", `${formattedAmt} paid to ${biller}.`, refId, formattedAmt, sourceAcctName);
+
+                document.getElementById("loading-screen").classList.add("hidden");
+                var wrapper = document.getElementById("dashboard-wrapper");
+                wrapper.classList.remove("hidden");
+                wrapper.style.display = "flex";
+
+                syncAppData();
+                document.getElementById('bill-amount').value = "";
+                msgEl.innerText = "";
+
+                triggerSuccessModal("Bill Paid Successfully!", `Your payment of $${amountVal.toLocaleString('en-US', { minimumFractionDigits: 2 })} to ${biller} has been processed.`);
+            }, 2500);
+        }
+
+        function toggleVisibility(fieldId, btn) {
+            var input = document.getElementById(fieldId);
+            if (input.type === "password") {
+                input.type = "text";
+                btn.innerText = "Hide";
+            } else {
+                input.type = "password";
+                btn.innerText = "Show";
+            }
+        }
+
+        function showForgotScreen() {
+            document.getElementById("login-screen").classList.add("hidden");
+            document.getElementById("otp-screen").classList.add("hidden");
+            document.getElementById("forgot-verify-screen").classList.add("hidden");
+            document.getElementById("forgot-screen").classList.remove("hidden");
+        }
+
+        function showLoginScreen() {
+            document.getElementById("forgot-screen").classList.add("hidden");
+            document.getElementById("otp-screen").classList.add("hidden");
+            document.getElementById("forgot-verify-screen").classList.add("hidden");
+            document.getElementById("login-screen").classList.remove("hidden");
+        }
+
+        function handleForgotSubmit() {
+            var val = document.getElementById("recovery-input").value.trim();
+            if (val.includes("@")) {
+                document.getElementById("forgot-screen").classList.add("hidden");
+                document.getElementById("forgot-verify-screen").classList.remove("hidden");
+                document.getElementById("verify-error-text").innerText = "";
+            } else {
+                document.getElementById("forgot-error-text").innerText = "Email not found. Verify email address.";
+            }
+        }
+
+        function handleCodeVerify() {
+            var code = document.getElementById("code-input").value.trim();
+            if (code.length === 6) {
+                triggerSuccessModal("Verification Success", "Identity verified successfully! You may now sign in.");
+                showLoginScreen();
+            } else {
+                document.getElementById("verify-error-text").innerText = "Please enter the valid 6-digit code.";
+            }
+        }
+
+        function handleLogin() {
+            var username = document.getElementById("username-input").value;
+            var pass = document.getElementById("pass-input").value;
+
+            if ((username === "biancafrankfuurt092@gmail.com" || username === "Bianca") && pass === "Password11@") {
+                document.getElementById("login-screen").classList.add("hidden");
+                document.getElementById("otp-screen").classList.remove("hidden");
+                startOtpCountdown();
+            } else {
+                document.getElementById("error-text").innerText = "Authentication failed. Verify credentials.";
+            }
+        }
+
+        let otpTimerInterval;
+        function startOtpCountdown() {
+            let timeLeft = 60;
+            const countdownEl = document.getElementById("otp-countdown");
+            clearInterval(otpTimerInterval);
+            otpTimerInterval = setInterval(() => {
+                timeLeft--;
+                if (countdownEl) countdownEl.innerText = timeLeft;
+                if (timeLeft <= 0) clearInterval(otpTimerInterval);
+            }, 1000);
+        }
+
+        async function handleBiometricLogin() {
+            document.getElementById("loading-title").innerText = "Scanning Biometric Hardware Enclave...";
+            document.getElementById("loading-subtitle").innerText = "Matching Secure Touch ID / Face ID Signature";
+            document.getElementById("login-screen").classList.add("hidden");
+            document.getElementById("loading-screen").classList.remove("hidden");
+
+            setTimeout(function() {
+                document.getElementById("loading-screen").classList.add("hidden");
+                showDashboard(true);
+            }, 5000);
+        }
+
+        function sendOtpCode(method) {
+            const statusEl = document.getElementById("otp-status-text");
+            const generatedCode = Math.floor(100000 + Math.random() * 900000);
+            statusEl.innerText = `Live 6-digit OTP dispatched securely via ${method === 'phone' ? 'SMS to ••••-190' : 'Email'}. (Test Code: ${generatedCode})`;
+            document.getElementById("otp-input-box").style.display = "block";
+            document.getElementById("otp-code").value = generatedCode;
+            startOtpCountdown();
+        }
+
+        function verifyOtpCode() {
+            const code = document.getElementById("otp-code").value.trim();
+            if (code.length === 6) {
+                document.getElementById("otp-screen").classList.add("hidden");
+                document.getElementById("loading-title").innerText = "Verifying Security OTP...";
+                document.getElementById("loading-subtitle").innerText = "Establishing Encrypted Member Session";
+                document.getElementById("loading-screen").classList.remove("hidden");
+
+                setTimeout(function() {
+                    document.getElementById("loading-screen").classList.add("hidden");
+                    showDashboard(true);
+                }, 5000);
+            } else {
+                triggerSuccessModal("OTP Error", "Please enter a valid 6-digit OTP code.");
+            }
+        }
+
+        function showDashboard(pushState) {
+            sessionStorage.setItem('pluto_logged_in', 'true');
+            var wrapper = document.getElementById("dashboard-wrapper");
+            wrapper.classList.remove("hidden");
+            wrapper.style.display = "flex";
+            if (pushState) {
+                history.pushState({ tab: 'accounts' }, '', '#accounts');
+            }
+            resetIdleTimer();
+        }
+
+        function handleLogout() {
+            document.getElementById("dashboard-wrapper").classList.add("hidden");
+            document.getElementById("dashboard-wrapper").style.display = "none";
+            document.getElementById("loading-title").innerText = "Terminating Secure Enclave Session...";
+            document.getElementById("loading-subtitle").innerText = "Clearing secure tokens and closing vault";
+            document.getElementById("loading-screen").classList.remove("hidden");
+
+            setTimeout(() => {
+                sessionStorage.removeItem('pluto_logged_in');
+                document.getElementById("loading-screen").classList.add("hidden");
+                document.getElementById("login-screen").classList.remove("hidden");
+                document.getElementById("pass-input").value = "";
+                triggerSuccessModal("Session Terminated", "Signed out securely. Your member session has ended.");
+            }, 3500);
+        }
+
+        function switchTab(tabName, pushState = true) {
+            document.getElementById("dashboard-wrapper").classList.add("hidden");
+            document.getElementById("dashboard-wrapper").style.display = "none";
+            document.getElementById("loading-title").innerText = "Loading " + tabName.toUpperCase() + " Portal...";
+            document.getElementById("loading-subtitle").innerText = "Retrieving encrypted member records";
+            document.getElementById("loading-screen").classList.remove("hidden");
+
+            setTimeout(() => {
+                document.getElementById("loading-screen").classList.add("hidden");
+                var wrapper = document.getElementById("dashboard-wrapper");
+                wrapper.classList.remove("hidden");
+                wrapper.style.display = "flex";
+
+                // Control stationary home header & quick chips visibility
+                const homeHeader = document.getElementById('home-header-section');
+                const homeChips = document.getElementById('home-quick-actions');
+                if (tabName === 'accounts') {
+                    if (homeHeader) homeHeader.style.display = 'block';
+                    if (homeChips) homeChips.style.display = 'flex';
+                } else {
+                    if (homeHeader) homeHeader.style.display = 'none';
+                    if (homeChips) homeChips.style.display = 'none';
+                }
+
+                ['accounts', 'transfer', 'history', 'billpay', 'deposit', 'cards', 'notifications', 'more'].forEach(t => {
+                    const tabEl = document.getElementById(`tab-${t}`);
+                    const navEl = document.getElementById(`nav-${t}`);
+                    if (tabEl) tabEl.classList.remove("active");
+                    if (navEl) navEl.classList.remove("active");
+                });
+
+                const activeTab = document.getElementById(`tab-${tabName}`);
+                const activeNav = document.getElementById(`nav-${tabName}`);
+                if (activeTab) activeTab.classList.add("active");
+                if (activeNav) activeNav.classList.add("active");
+
+                if (pushState) {
+                    history.pushState({ tab: tabName }, '', `#${tabName}`);
+                }
+                resetIdleTimer();
+            }, 1200);
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Img = e.target.result;
+                    document.getElementById("dashboard-wrapper").classList.add("hidden");
+                    document.getElementById("dashboard-wrapper").style.display = "none";
+                    document.getElementById("loading-title").innerText = "Encrypting Member Avatar...";
+                    document.getElementById("loading-subtitle").innerText = "Applying profile image across secure vault";
+                    document.getElementById("loading-screen").classList.remove("hidden");
+
+                    setTimeout(() => {
+                        document.getElementById('profile-avatar').src = base64Img;
+                        document.getElementById('header-avatar-img').src = base64Img;
+                        localStorage.setItem('pluto_avatar', base64Img);
+
+                        document.getElementById("loading-screen").classList.add("hidden");
+                        var wrapper = document.getElementById("dashboard-wrapper");
+                        wrapper.classList.remove("hidden");
+                        wrapper.style.display = "flex";
+
+                        triggerSuccessModal("Profile Updated", "Profile picture updated successfully!");
+                    }, 3000);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveProfileData() {
+            const name = document.getElementById('p-name').value;
+            const address = document.getElementById('p-address').value;
+            const ssn = document.getElementById('p-ssn').value;
+            const phone = document.getElementById('p-phone').value;
+            const email = document.getElementById('p-email').value;
+
+            closeProfileEditModal();
+
+            localStorage.setItem('pluto_name', name);
+            localStorage.setItem('pluto_address', address);
+            localStorage.setItem('pluto_ssn', ssn);
+            localStorage.setItem('pluto_phone', phone);
+            localStorage.setItem('pluto_email', email);
+
+            document.getElementById('display-profile-name').innerText = name;
+            document.getElementById('card-holder-name-debit').innerText = name.toUpperCase();
+            document.getElementById('card-holder-name-credit').innerText = name.toUpperCase();
+            document.getElementById('display-profile-email').innerText = email;
+
+            triggerSuccessModal("Profile Updated", "Profile details & SSN records saved successfully!");
+        }
+    </script>
+
+</body>
+</html>
